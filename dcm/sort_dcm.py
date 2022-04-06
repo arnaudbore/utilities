@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, sys , argparse
+import glob
 import numpy as np
 import pydicom
 from shutil import copyfile, rmtree, move
@@ -41,7 +42,7 @@ def get_arguments():
 
     parser.add_argument(
         "-v", "--verbose",
-        action="store_true",
+        action='store_true',
         help="Verbose to get more information about whats going on",
         )
 
@@ -74,19 +75,19 @@ class sortDCM(object):
         self.rmRaw = rmRaw
 
     def run(self):
-        onlyFiles   = [f for f in os.listdir(self.inputFolder) if os.path.isfile(os.path.join(self.inputFolder, f))]
+        onlyFiles = [os.path.join(path, name) for path, subdirs, files in os.walk(self.inputFolder) for name in files]
         onlyFiles.sort()
 
         meSeq = []
         for nFile in onlyFiles:
             if self.verbose:
                 print('File: '+nFile)
-            iFile = os.path.join(self.inputFolder, nFile)
+            iFile = nFile
             ds = pydicom.dcmread(iFile, force=True) # Read File
 
             if 'SeriesNumber' in ds and 'SeriesDescription' in ds and 'PatientName' in ds and 'InstanceNumber' in ds:
 
-                seriesFolder = os.path.join(self.outputFolder, '{:02d}'.format(ds.SeriesNumber) + '-' + str(ds.SeriesDescription.replace(' ','_')))
+                seriesFolder = os.path.join(self.outputFolder, '{:02d}'.format(ds.SeriesNumber) + '-' + str(ds.SeriesDescription.replace(' ','_').replace('/','_')))
 
                 if not os.path.exists(seriesFolder): # Create Serie Directory
                     os.mkdir(seriesFolder)
@@ -119,7 +120,7 @@ class sortDCM(object):
 
                                 iFile = os.path.join(nSeries, nFile)
                                 ds = pydicom.dcmread(iFile, force=True) # Read File
-                                
+
                                 if 'EchoNumbers' in ds:
                                     seriesFolder = os.path.join(nSeries, 'echo_' + str(ds.EchoNumbers))
 
@@ -144,7 +145,7 @@ class sortDCM(object):
                         if not os.path.exists(seriesFolder):
                             os.mkdir(seriesFolder)
 
-                        newName = os.path.join(seriesFolder, nFile)
+                        newName = os.path.join(seriesFolder, os.path.basename(nFile))
                         copyfile(iFile, newName)
 
             else:

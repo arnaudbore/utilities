@@ -1,0 +1,5 @@
+mkdir -p ${1}/{sourcedata,derivatives,code}
+echo -e "1.0.1 - <name of the creator>\n- Initial release." > ${1}/CHANGES
+echo -e "participant_id\tage\tsex\tgroup" > ${1}/participants.tsv
+echo -e "{\n\"Name\": \"$1\",\n\"BIDSVersion\": \"\",\n\"Authors\": [\"\",\"\"]\n}\n" > ${1}/dataset_description.json
+echo > ${1}/README
